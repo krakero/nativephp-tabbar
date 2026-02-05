@@ -91,7 +91,7 @@ class NativeTabBarProvider extends TabBarServiceProvider
 
 ### 2. Register the Provider
 
-Add to your `bootstrap/providers.php` (Laravel 11+):
+Add to your `bootstrap/providers.php`:
 
 ```php
 return [
@@ -100,14 +100,71 @@ return [
 ];
 ```
 
-Or in `config/app.php` (Laravel 10):
+## Dynamic Tab Visibility
+
+Tabs can have dynamic visibility that changes based on application state. Instead of passing a boolean to `->visible()`, you can pass a closure that returns a boolean. This closure is evaluated:
+- When tabs are initially configured
+- When tabs are updated via `TabBar::update()`
+- When a tab is selected (automatically re-evaluates all visibility)
+- When you call `TabBar::refresh()` manually
+
+### Examples
 
 ```php
-'providers' => [
-    // ...
-    App\Providers\NativeTabBarProvider::class,
-],
+// In your NativeTabBarProvider
+public function tabs(): array
+{
+    return [
+        TabItem::make('home')
+            ->label('Home')
+            ->icon('house')
+            ->url('/dashboard')
+            ->visible(true), // Static visibility
+
+        TabItem::make('admin')
+            ->label('Admin')
+            ->icon('gear')
+            ->url('/admin')
+            ->visible(function() {
+                // Only show for admin users
+                return auth()->user()?->isAdmin() ?? false;
+            }),
+
+        TabItem::make('posts')
+            ->label('Posts')
+            ->icon('document')
+            ->url('/posts')
+            ->visible(function() {
+                // Hide when already viewing a post
+                return ! request()->is('posts/*');
+            }),
+
+        TabItem::make('debug')
+            ->label('Debug')
+            ->icon('bug')
+            ->url('/debug')
+            ->visible(fn() => app()->environment('local')),
+    ];
+}
 ```
+
+### Manual Refresh
+
+If you need to refresh tab visibility after a state change (like user login/logout), you can manually trigger a refresh:
+
+```php
+use Krakero\TabBar\Facades\TabBar;
+
+// After user login
+auth()->login($user);
+TabBar::refresh(); // Re-evaluates all visibility callbacks
+
+// After changing application state
+session(['show_admin_tools' => true]);
+TabBar::refresh();
+```
+
+The tabs automatically refresh when users switch between tabs, so visibility callbacks will be re-evaluated as users navigate through your app.
 
 ## Action Tabs
 
@@ -196,12 +253,13 @@ public function handleTabAction($id, $action)
 | `->label(string $label)` | Set the display label |
 | `->icon(string $name)` | Set a system icon (SF Symbol / Material) |
 | `->customIcon(string $path)` | Set a custom bundled icon |
-| `->activeIcon(string $name)` | Set a different icon for the active state |
+| `->activeIcon(string $name)` | Set a different system icon for the active state |
+| `->activeCustomIcon(string $path)` | Set a different custom icon for the active state |
 | `->url(string $url)` | Navigate the webview when tapped |
 | `->action(string\|Closure $action, ?Closure $callback)` | Trigger an action when tapped (see above) |
 | `->badge(?int $count)` | Set a numeric badge (null to clear) |
 | `->badgeColor(string $hex)` | Set the badge background color |
-| `->visible(bool $visible)` | Show or hide this tab |
+| `->visible(bool\|Closure $visible)` | Show or hide this tab (can use a callback for dynamic visibility) |
 | `->active()` | Mark as the initially selected tab |
 
 ### TabBar Facade
@@ -219,6 +277,9 @@ TabBar::setBadge('inbox', null); // clear
 // Show/hide
 TabBar::hide();
 TabBar::show();
+
+// Refresh tabs (re-evaluates visibility callbacks)
+TabBar::refresh();
 
 // Full runtime reconfiguration (re-registers callbacks too)
 TabBar::update([

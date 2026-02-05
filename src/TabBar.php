@@ -8,12 +8,14 @@ class TabBar
 {
     public const MAX_TABS = 5;
 
-    protected TabActionRegistry $registry;
+    /**
+     * @var TabItem[]
+     */
+    protected array $currentTabs = [];
 
-    public function __construct(TabActionRegistry $registry)
-    {
-        $this->registry = $registry;
-    }
+    protected ?TabBarStyle $currentStyle = null;
+
+    public function __construct(protected TabActionRegistry $registry) {}
 
     /**
      * Configure the tab bar with a full set of tabs and optional styling.
@@ -31,9 +33,10 @@ class TabBar
         $this->validateTabs($tabs);
         $this->registerCallbacks($tabs);
 
-        $config = $this->buildConfig($tabs, $style);
+        $this->currentTabs = $tabs;
+        $this->currentStyle = $style;
 
-        return $this->call('TabBar.Configure', $config);
+        return $this->call('TabBar.Configure', $this->buildConfig($tabs, $style));
     }
 
     /**
@@ -50,13 +53,13 @@ class TabBar
     {
         $this->validateTabs($tabs);
 
-        // Flush old callbacks and register new ones
         $this->registry->flush();
         $this->registerCallbacks($tabs);
 
-        $config = $this->buildConfig($tabs, $style);
+        $this->currentTabs = $tabs;
+        $this->currentStyle = $style;
 
-        return $this->call('TabBar.Update', $config);
+        return $this->call('TabBar.Update', $this->buildConfig($tabs, $style));
     }
 
     /**
@@ -93,6 +96,21 @@ class TabBar
     public function hide(): mixed
     {
         return $this->call('TabBar.Hide', []);
+    }
+
+    /**
+     * Refresh the tab bar by re-evaluating visibility callbacks.
+     *
+     * This is useful when application state changes (e.g., after route changes,
+     * user authentication, etc.) and you need to re-check visibility conditions.
+     */
+    public function refresh(): mixed
+    {
+        if (empty($this->currentTabs)) {
+            return null;
+        }
+
+        return $this->call('TabBar.Update', $this->buildConfig($this->currentTabs, $this->currentStyle));
     }
 
     /**
@@ -162,12 +180,7 @@ class TabBar
     {
         if (count($tabs) > self::MAX_TABS) {
             throw new InvalidArgumentException(
-                sprintf(
-                    'TabBar supports a maximum of %d tabs. %d provided. iOS UITabBar and Android BottomNavigationView do not support more than %d items.',
-                    self::MAX_TABS,
-                    count($tabs),
-                    self::MAX_TABS,
-                )
+                sprintf('TabBar supports a maximum of %d tabs, %d provided.', self::MAX_TABS, count($tabs))
             );
         }
 

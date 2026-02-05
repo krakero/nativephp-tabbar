@@ -32,7 +32,7 @@ class TabItem
 
     protected ?string $badgeColor = null;
 
-    protected bool $visible = true;
+    protected bool|Closure $visible = true;
 
     protected bool $isActive = false;
 
@@ -170,8 +170,11 @@ class TabItem
 
     /**
      * Set whether this tab is visible.
+     *
+     * Can accept either a boolean or a closure that returns a boolean.
+     * The closure will be evaluated each time the tab configuration is built.
      */
-    public function visible(bool $visible = true): static
+    public function visible(bool|Closure $visible = true): static
     {
         $this->visible = $visible;
 
@@ -194,6 +197,21 @@ class TabItem
     public function isActive(): bool
     {
         return $this->isActive;
+    }
+
+    /**
+     * Check whether this tab should be visible.
+     *
+     * If visibility is a closure, it will be evaluated and the result returned.
+     * Otherwise, the boolean value is returned directly.
+     */
+    public function isVisible(): bool
+    {
+        if ($this->visible instanceof Closure) {
+            return (bool) ($this->visible)();
+        }
+
+        return (bool) $this->visible;
     }
 
     /**
@@ -231,8 +249,9 @@ class TabItem
     /**
      * Serialize this tab item to an array for the native bridge.
      *
-     * Note: The closure is NOT included in the serialized output.
-     * It is stored separately in the TabActionRegistry.
+     * Note: Action closures are NOT included in the serialized output.
+     * They are stored separately in the TabActionRegistry.
+     * Visibility closures are evaluated at serialization time.
      */
     public function toArray(): array
     {
@@ -248,7 +267,7 @@ class TabItem
             'action' => $this->actionName,
             'badge' => $this->badge,
             'badge_color' => $this->badgeColor,
-            'visible' => $this->visible,
+            'visible' => $this->isVisible(),
             'is_active' => $this->isActive,
         ], fn ($v) => $v !== null);
     }

@@ -5,6 +5,7 @@ namespace Krakero\TabBar;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Krakero\TabBar\Events\TabActionTriggered;
+use Krakero\TabBar\Events\TabSelected;
 
 class TabBarServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,7 @@ class TabBarServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerActionListener();
+        $this->registerTabSelectedListener();
 
         if (! function_exists('nativephp_call')) {
             return;
@@ -60,11 +62,21 @@ class TabBarServiceProvider extends ServiceProvider
     protected function registerActionListener(): void
     {
         Event::listen(TabActionTriggered::class, function (TabActionTriggered $event) {
-            $registry = app(TabActionRegistry::class);
-            $registry->execute($event->id, $event->action);
+            app(TabActionRegistry::class)->execute($event->id, $event->action);
+        });
+    }
 
-            // Return void (not false) so the event continues propagating
-            // to any additional listeners, including Livewire #[OnNative].
+    /**
+     * Register the event listener that refreshes tabs when a tab is selected.
+     *
+     * This ensures visibility callbacks are re-evaluated when the user
+     * navigates between tabs, allowing dynamic visibility based on the
+     * current application state (e.g., route, user permissions, etc.).
+     */
+    protected function registerTabSelectedListener(): void
+    {
+        Event::listen(TabSelected::class, function (TabSelected $event) {
+            app(TabBar::class)->refresh();
         });
     }
 
@@ -98,10 +110,6 @@ class TabBarServiceProvider extends ServiceProvider
      *
      * @return TabItem[]
      */
-    // public function tabs(): array
-    // {
-    //     return [];
-    // }
 
     /**
      * Define the tab bar style / theming.
@@ -121,8 +129,4 @@ class TabBarServiceProvider extends ServiceProvider
      *             ->darkInactiveColor('#8E8E93');
      *     }
      */
-    // public function tabStyle(): TabBarStyle
-    // {
-    //     return TabBarStyle::make();
-    // }
 }

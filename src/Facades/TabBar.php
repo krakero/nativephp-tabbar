@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static mixed setBadge(string $tabId, ?int $count)
  * @method static mixed show()
  * @method static mixed hide()
+ * @method static mixed refresh()
+ * @method static \Krakero\TabBar\TabActionRegistry getRegistry()
  *
  * @see \Krakero\TabBar\TabBar
  */
