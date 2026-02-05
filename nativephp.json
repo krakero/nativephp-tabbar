@@ -1,0 +1,45 @@
+{
+    "namespace": "TabBar",
+    "bridge_functions": [
+        {
+            "name": "TabBar.Configure",
+            "ios": "TabBarFunctions.Configure",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.Configure",
+            "description": "Configure the tab bar with tabs, styling, and active tab"
+        },
+        {
+            "name": "TabBar.Update",
+            "ios": "TabBarFunctions.Update",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.Update",
+            "description": "Update tab bar configuration at runtime"
+        },
+        {
+            "name": "TabBar.SetActive",
+            "ios": "TabBarFunctions.SetActive",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.SetActive",
+            "description": "Programmatically switch the active tab"
+        },
+        {
+            "name": "TabBar.SetBadge",
+            "ios": "TabBarFunctions.SetBadge",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.SetBadge",
+            "description": "Set or clear a numeric badge on a tab"
+        },
+        {
+            "name": "TabBar.Show",
+            "ios": "TabBarFunctions.Show",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.Show",
+            "description": "Show the tab bar"
+        },
+        {
+            "name": "TabBar.Hide",
+            "ios": "TabBarFunctions.Hide",
+            "android": "com.krakero.plugins.tabbar.TabBarFunctions.Hide",
+            "description": "Hide the tab bar"
+        }
+    ],
+    "events": [
+        "Krakero\\TabBar\\Events\\TabSelected",
+        "Krakero\\TabBar\\Events\\TabActionTriggered"
+    ]
+}

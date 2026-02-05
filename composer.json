@@ -1,0 +1,31 @@
+{
+    "name": "krakero/nativephp-tabbar",
+    "description": "Native tab bar for NativePHP Mobile with fluent PHP configuration, supporting URL navigation, action callbacks, badges, theming, and dynamic show/hide.",
+    "type": "nativephp-plugin",
+    "license": "MIT",
+    "keywords": ["nativephp", "nativephp-mobile", "nativephp-plugin", "tabbar", "navigation", "bottom-nav"],
+    "authors": [
+        {
+            "name": "Krakero"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Krakero\\TabBar\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Krakero\\TabBar\\TabBarServiceProvider"]
+        },
+        "nativephp": {
+            "manifest": "nativephp.json"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
